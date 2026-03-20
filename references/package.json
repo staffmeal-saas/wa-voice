@@ -1,0 +1,28 @@
+{
+  "name": "whatsapp-prospecting",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/cli.js",
+  "scripts": {
+    "scan": "node src/cli.js scan",
+    "send": "node src/cli.js send",
+    "convert": "node src/cli.js convert",
+    "status": "node src/cli.js status",
+    "clear": "node src/cli.js clear"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.6.0",
+    "pino": "^8.17.0",
+    "pino-pretty": "^10.3.0",
+    "qrcode": "^1.5.3"
+  },
+  "keywords": [
+    "whatsapp",
+    "prospecting",
+    "baileys",
+    "marketing",
+    "voice-message"
+  ],
+  "author": "",
+  "license": "MIT"
+}
