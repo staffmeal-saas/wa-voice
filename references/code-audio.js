@@ -12,19 +12,19 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const AUDIO_FOLDER = join(__dirname, '../../audio');
-const DEFAULT_AUDIO_FILE = join(AUDIO_FOLDER, 'message.aac');
+const DEFAULT_AUDIO_FILE = join(AUDIO_FOLDER, 'message.opus');
 const ACCEPTED_FORMATS = ['.aac', '.m4a', '.opus', '.ogg', '.mp3', '.wav'];
 const MAX_VOICE_DURATION = 300; // 5 minutes
 
 /**
- * Convertit un fichier audio en format AAC pour WhatsApp
+ * Convertit un fichier audio en format OGG/Opus pour WhatsApp (message vocal)
  */
-export async function convertToAAC(inputPath, outputPath = null) {
+export async function convertToOpus(inputPath, outputPath = null) {
   if (!existsSync(inputPath)) {
     throw new Error(`Fichier introuvable: ${inputPath}`);
   }
 
-  const output = outputPath || inputPath.replace(/\.[^.]+$/, '.aac');
+  const output = outputPath || inputPath.replace(/\.[^.]+$/, '.opus');
 
   try {
     await execAsync('ffmpeg -version');
@@ -32,7 +32,8 @@ export async function convertToAAC(inputPath, outputPath = null) {
     throw new Error('ffmpeg est requis. Installation: brew install ffmpeg');
   }
 
-  const command = `ffmpeg -i "${inputPath}" -c:a aac -b:a 64k -ac 1 -ar 44100 -y "${output}"`;
+  // IMPORTANT: -application voip est nécessaire pour afficher la waveform
+  const command = `ffmpeg -i "${inputPath}" -c:a libopus -b:a 24k -ac 1 -ar 48000 -application voip -y "${output}"`;
 
   try {
     await execAsync(command);
@@ -78,17 +79,16 @@ export async function prepareAudioForWhatsApp(sourcePath) {
   let targetPath = sourcePath;
 
   if (!isAcceptedFormat(sourcePath)) {
-    console.log(`⚠️ Format non supporté, conversion vers AAC...`);
-    targetPath = await convertToAAC(sourcePath);
+    console.log(`⚠️ Format non supporté, conversion vers Opus...`);
+    targetPath = await convertToOpus(sourcePath);
     console.log(`✅ Converti: ${targetPath}`);
-  } else if (sourcePath.endsWith('.opus') || sourcePath.endsWith('.ogg')) {
-    console.log(`⚠️ Conversion de Opus vers AAC pour meilleure compatibilité...`);
-    const originalSource = sourcePath.replace(/\.(opus|ogg)$/, '.m4a');
-    if (existsSync(originalSource)) {
-      targetPath = await convertToAAC(originalSource);
-    } else {
-      targetPath = await convertToAAC(sourcePath);
-    }
+  } else if (sourcePath.endsWith('.aac') || sourcePath.endsWith('.m4a') || sourcePath.endsWith('.mp3') || sourcePath.endsWith('.wav')) {
+    console.log(`⚠️ Conversion vers Opus pour message vocal (waveform)...`);
+    targetPath = await convertToOpus(sourcePath);
+    console.log(`✅ Converti: ${targetPath}`);
+  } else if (!sourcePath.endsWith('.opus')) {
+    console.log(`⚠️ Conversion vers Opus optimisé...`);
+    targetPath = await convertToOpus(sourcePath);
     console.log(`✅ Converti: ${targetPath}`);
   }
 
@@ -112,10 +112,10 @@ export function readAudioBuffer(filePath) {
 export function getMimeType(filePath) {
   const ext = filePath.toLowerCase();
   const mimeTypes = {
+    '.opus': 'audio/ogg; codecs=opus',  // Requis pour PTT (waveform)
+    '.ogg': 'audio/ogg; codecs=opus',
     '.aac': 'audio/aac',
     '.m4a': 'audio/mp4',
-    '.opus': 'audio/ogg; codecs=opus',
-    '.ogg': 'audio/ogg',
     '.mp3': 'audio/mpeg',
     '.wav': 'audio/wav'
   };
@@ -125,7 +125,7 @@ export function getMimeType(filePath) {
       return mimeType;
     }
   }
-  return 'audio/aac';
+  return 'audio/ogg';
 }
 
 export async function checkFFmpeg() {
@@ -138,7 +138,7 @@ export async function checkFFmpeg() {
 }
 
 export default {
-  convertToAAC,
+  convertToOpus,
   isAcceptedFormat,
   getAudioMetadata,
   prepareAudioForWhatsApp,

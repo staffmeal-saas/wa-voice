@@ -13,13 +13,8 @@ Outil de prospection WhatsApp utilisant Baileys (@whiskeysockets/baileys) pour e
 ### Étape 1: Installation
 
 ```bash
-# Créer le projet
 mkdir whatsapp-prospecting && cd whatsapp-prospecting
-
-# Initialiser le package
 npm init -y
-
-# Installer les dépendances
 npm install @whiskeysockets/baileys pino pino-pretty qrcode
 ```
 
@@ -37,18 +32,18 @@ whatsapp-prospecting/
 │   └── services/
 │       └── sender.js
 ├── data/
-│   └── numbers.txt
-├── audio/
-└── logs/
+│   ├── auth/              # Dossier à créer (NE PAS PARTAGER)
+│   └── numbers.txt       # Liste des numéros
+├── audio/                # Dossier pour les fichiers audio
+└── logs/                 # Historique des envois
 ```
 
 ### Étape 3: Code Source
 
-**Copiez les fichiers depuis le repository:**
-
+Copiez les fichiers depuis le repository:
 - `src/cli.js` - Interface CLI
 - `src/lib/baileys-client.js` - Connexion WhatsApp
-- `src/lib/audio.js` - Conversion audio
+- `src/lib/audio.js` - Conversion audio (Opus avec waveform)
 - `src/services/sender.js` - Envoi en masse
 - `package.json` - Configuration du projet
 
@@ -70,11 +65,13 @@ Créez `data/numbers.txt` avec vos numéros (SANS le signe `+`):
 33782679955
 ```
 
+⚠️ **Format important:** SANS le signe `+` (ex: 33782679955, pas +33782679955)
+
 ### Étape 6: Envoyer des Messages
 
 **Messages vocaux:**
 ```bash
-npm run send -- --file=/path/to/audio.aac
+npm run send -- --file=/path/to/audio.opus
 ```
 
 **Messages textes:**
@@ -99,32 +96,44 @@ batchSize: 5,                 // Pause après 5 messages
 batchDelay: 30000,           // Pause de 30s
 ```
 
-## Format Audio Recommandé
+## Format Audio Recommandé (IMPORTANT pour la waveform)
 
-- **Codec:** AAC
-- **Bitrate:** 64kbps
-- **Channels:** Mono
-- **Sample Rate:** 44.1kHz
+| Paramètre | Valeur |
+|-----------|---------|
+| Codec | Opus (dans conteneur OGG) |
+| Bitrate | 24kbps |
+| Channels | Mono |
+| Sample Rate | 48kHz |
+| Application | voip (IMPORTANT pour waveform) |
 
 Conversion automatique avec FFmpeg:
 ```bash
-ffmpeg -i input.m4a -c:a aac -b:a 64k -ac 1 -ar 44100 output.aac
+ffmpeg -i input.m4a -c:a libopus -b:a 24k -ac 1 -ar 48000 -application voip output.opus
 ```
+
+**Note:** Le flag `-application voip` est essentiel pour afficher l'ondulation bleue (waveform) sur les messages vocaux.
 
 ## Dépannage
 
 | Problème | Solution |
 |----------|----------|
-| QR code non généré | Vérifier que ffmpeg est installé |
-| "This audio is no longer available" | Utiliser format AAC (pas Opus) |
+| QR code non généré | Installer FFmpeg |
+| Pas de waveform | Utiliser format Opus avec flag `-application voip` |
+| "This audio is no longer available" | Vérifier format Opus + flag voip |
 | Timeout | Vérifier format SANS le signe `+` |
 | Session expirée | Relancer `npm run scan` |
 
 ## Sécurité
 
-- Ne partagez JAMAIS le dossier `data/auth/`
-- Ce dossier contient vos credentials WhatsApp
-- Ajoutez `data/auth/` à votre `.gitignore`
+⚠️ **NE PARTAGEZ JAMAIS le dossier `data/auth/`**
+
+Ce dossier contient vos credentials WhatsApp. Ajoutez-le à `.gitignore`:
+
+```gitignore
+data/auth/
+*.log
+qrcode.png
+```
 
 ## Avertissement
 
@@ -135,4 +144,4 @@ ffmpeg -i input.m4a -c:a aac -b:a 64k -ac 1 -ar 44100 output.aac
 
 ## License
 
-MIT - Libre d'utilisation
+MIT - Libre d'utilisation.
