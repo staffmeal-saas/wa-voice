@@ -1,0 +1,22 @@
+{
+  "name": "whatsapp-prospecting",
+  "version": "1.0.0",
+  "description": "WhatsApp prospecting tool using Baileys - mass messaging, multi-device, warm-up",
+  "type": "module",
+  "scripts": {
+    "scan": "node src/cli.js scan",
+    "send": "node src/cli.js send",
+    "status": "node src/cli.js status",
+    "convert": "node src/cli.js convert",
+    "device": "node src/cli.js device",
+    "warmup": "node src/cli.js warmup"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.17.16",
+    "baileys": "^7.0.0-rc.9",
+    "pino": "^9.6.0",
+    "qrcode": "^1.5.4",
+    "qrcode-terminal": "^0.12.0"
+  },
+  "license": "MIT"
+}

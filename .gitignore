@@ -1,21 +1,7 @@
-# Data et sessions
-data/auth/
-data/numbers.txt
-qrcode.png
-
-# Logs
-logs/
-*.log
-
-# Node
 node_modules/
-package-lock.json
-
-# Système
+data/devices/*/auth/
+data/devices.json
+*.log
+qrcode.png
+logs/
 .DS_Store
-Thumbs.db
-
-# Credentials
-*.creds
-*.session
-*.db
